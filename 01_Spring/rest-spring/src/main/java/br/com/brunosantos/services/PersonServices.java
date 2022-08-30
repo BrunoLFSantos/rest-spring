@@ -6,7 +6,9 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.brunosantos.data.vo.v1.PersonVO;
 import br.com.brunosantos.exceptions.ResourceNotFoundException;
+import br.com.brunosantos.mapper.DozerMapper;
 import br.com.brunosantos.model.Person;
 import br.com.brunosantos.repositories.PersonRepository;
 
@@ -17,48 +19,36 @@ public class PersonServices {
 
 	@Autowired
 	PersonRepository personRepository;
-	public List<Person> findAll(){
-		return personRepository.findAll();
+	public List<PersonVO> findAll(){
+		return DozerMapper.parseListObjects(personRepository.findAll(), PersonVO.class);
 	}
-//	private Person mockPerson(int i) {
-//		logger.info("Procurando todas as pessoas!");
-//		Person person = new Person();
-//		person.setId(counter.incrementAndGet());
-//		person.setFirstName("Bruno" + i);
-//		person.setLastName("Santos" + i);
-//		person.setAdress("Morin" + i);
-//		person.setGender("M" + i);
-//		return person;
-//	}
-	public Person findById(Long id) {
+	public PersonVO findById(Long id) {
 		logger.info("Procurando uma pessoa!");
-//		Person person = new Person();
-//		person.setId(counter.incrementAndGet());
-//		person.setFirstName("Bruno");
-//		person.setLastName("Santos");
-//		person.setAdress("Morin");
-//		person.setGender("M");
-		return personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
+		var entity = personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
+		return DozerMapper.parseObject(entity, PersonVO.class);
 	}
 	
-	public Person create(Person person) {
+	public PersonVO create(PersonVO personVo) {
 		logger.info("Creando uma pessoa!");
-		return personRepository.save(person);
+		var entity = DozerMapper.parseObject(personVo, Person.class);
+		var vo = DozerMapper.parseObject(personRepository.save(entity), PersonVO.class);
+		return vo;
 	}
 	
-	public Person update(Person person) {
+	public PersonVO update(PersonVO person) {
 		logger.info("Atualizando uma	 pessoa!");
-		Person entity = personRepository.findById(person.getId()).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
+		var entity = personRepository.findById(person.getId()).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
 		entity.setFirstName(person.getFirstName());
 		entity.setLastName(person.getLastName());
 		entity.setAdress(person.getAdress());
 		entity.setGender(person.getGender());
-		return personRepository.save(entity);
+		var vo = DozerMapper.parseObject(personRepository.save(entity), PersonVO.class);
+		return vo;
 	}
 	
 	public void delete(Long id) {
 		logger.info("Deletando uma pessoa!");
-		Person entity = personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
+		var entity = personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada!"));
 		personRepository.delete(entity);
 	}
 }
